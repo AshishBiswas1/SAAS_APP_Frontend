@@ -11,6 +11,23 @@ const videoService = {
     }
   },
 
+  getVideosWithProgress: async (courseId) => {
+    try {
+      const resp = await apiClient.get(`/video/course/${courseId}/progress`);
+      return resp?.data?.videos || [];
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  updateVideoProgress: async (videoId, payload) => {
+    try {
+      const resp = await apiClient.post(`/video/${videoId}/progress`, payload);
+      return resp?.data || resp;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
   uploadVideo: async ({ courseId, file, title, onUploadProgress }) => {
     try {
       const fd = new FormData();

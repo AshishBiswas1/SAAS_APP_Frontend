@@ -5,6 +5,8 @@ const App = lazy(() => import('./App.jsx'));
 const Login = lazy(() => import('./pages/Login'));
 const Signup = lazy(() => import('./pages/Signup'));
 const CourseDetails = lazy(() => import('./pages/CourseDetails'));
+const Learn = lazy(() => import('./pages/Learn'));
+const Player = lazy(() => import('./pages/Player'));
 const DashboardLayout = lazy(() => import('./pages/dashboard/DashboardLayout'));
 const DashboardOverview = lazy(() =>
   import('./pages/dashboard/DashboardOverview')
@@ -33,6 +35,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/course/:id" element={<CourseDetails />} />
+            <Route path="/learn/:id" element={<Learn />} />
+            <Route
+              path="/learn/:courseId/video/:videoId"
+              element={<Player />}
+            />
 
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<DashboardOverview />} />
