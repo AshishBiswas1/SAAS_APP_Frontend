@@ -72,11 +72,9 @@ export default function CourseDetails() {
     setError(null);
     setLoading(true);
 
-    // Check if user is logged in by checking for jwt cookie
-    const hasCookie = document.cookie.split(';').some((cookie) => {
-      return cookie.trim().startsWith('jwt=');
-    });
-    setIsLoggedIn(hasCookie);
+    // Check if user is logged in by checking for authToken in localStorage
+    const token = localStorage.getItem('authToken');
+    setIsLoggedIn(!!token);
 
     try {
       // Always load course and reviews
@@ -90,7 +88,7 @@ export default function CourseDetails() {
       setReviews(reviewsData || []);
 
       // Only check enrollment if user is logged in
-      if (hasCookie) {
+      if (token) {
         setCheckingEnrollment(true);
         try {
           const enrollmentData = await paymentService.checkEnrollment(id);
