@@ -18,7 +18,38 @@ const authService = {
     });
 
     return response;
+  },
+  getMe: async () => {
+    // Check if jwt cookie exists before making the request
+    const hasCookie = document.cookie.split(';').some((cookie) => {
+      return cookie.trim().startsWith('jwt=');
+    });
+
+    if (!hasCookie) {
+      console.log('No jwt cookie found, skipping getMe request');
+      return null;
+    }
+
+    // Calls backend route which reads token (cookie or header) and returns
+    // { status: 'success', data: { user: { ... } } } or user=null.
+    try {
+      const resp = await apiClient.get('/user/getMe');
+      // apiClient interceptor unwraps response -> resp is the body
+      const userRow = resp?.data?.user || resp?.user || resp?.data || null;
+      if (!userRow) return null;
+      const userObj = {
+        id: userRow.id,
+        email: userRow.email || userRow.email,
+        name: userRow.full_name || userRow.name || userRow.email || '',
+        image: userRow.image || null,
+        raw: userRow
+      };
+      return userObj;
+    } catch (e) {
+      return null;
+    }
   }
+  // No server-side logout: client will clear cookie/local state
 };
 
 export default authService;

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Facebook, Twitter, Linkedin, Github } from 'lucide-react';
+import LazyImage from './LazyImage';
 
 export default function Footer() {
   return (
@@ -10,7 +11,11 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg shadow-lg shadow-indigo-500/50"></div>
+              <LazyImage
+                src="/logo.png"
+                alt="SkillForge"
+                className="w-8 h-8 rounded-lg shadow-lg shadow-indigo-500/50 object-cover"
+              />
               <span className="font-bold text-lg bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
                 SkillForge
               </span>

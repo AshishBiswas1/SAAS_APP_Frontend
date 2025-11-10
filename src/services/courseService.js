@@ -47,7 +47,123 @@ const courseService = {
   getCourseById: async (courseId) => {
     try {
       const response = await apiClient.get(`/course/${courseId}`);
-      return response.data?.course || null;
+      // apiClient may unwrap response.data already — handle both shapes
+      // possible shapes:
+      // 1) { status, data: { course } }
+      // 2) { course }
+      // 3) { data: course }
+      return (
+        response?.data?.course || response?.course || response?.data || null
+      );
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Get reviews for a specific course
+  getCourseReviews: async (courseId) => {
+    try {
+      const response = await apiClient.get(`/review/course/${courseId}`);
+      // apiClient may return either the raw Axios response or the response body
+      // Handle both shapes: (1) { data: { reviews: [...] } } or (2) { status, results, data: { reviews } }
+      return (
+        response?.data?.reviews || // if apiClient returned body under response.data
+        response?.data?.data?.reviews || // legacy shape
+        response?.data || // if apiClient returned { data: [...] }
+        response?.reviews || // fallback
+        []
+      );
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Create a review for a course (requires auth)
+  createReview: async ({ course_id, rating, review }) => {
+    try {
+      const response = await apiClient.post('/review', {
+        course_id,
+        rating,
+        review
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Get courses created by the logged-in user
+  getMyCourses: async () => {
+    try {
+      const response = await apiClient.get('/course/my-courses');
+      return (
+        response?.data?.courses || response?.courses || response?.data || []
+      );
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Create a course (multipart/form-data)
+  createCourse: async (formData) => {
+    try {
+      const response = await apiClient.post('/course/postCourse', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return response?.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  publishCourse: async (courseId) => {
+    try {
+      const response = await apiClient.patch(`/course/${courseId}/publish`);
+      return response?.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  updateCourse: async (courseId, payload) => {
+    try {
+      // If payload is FormData (for file uploads), set multipart header
+      const config = {};
+      if (typeof FormData !== 'undefined' && payload instanceof FormData) {
+        config.headers = { 'Content-Type': 'multipart/form-data' };
+      }
+      const response = await apiClient.patch(
+        `/course/${courseId}`,
+        payload,
+        config
+      );
+      return response?.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Author-specific update (for course owners). Supports FormData.
+  updateMyCourse: async (courseId, payload) => {
+    try {
+      const config = {};
+      if (typeof FormData !== 'undefined' && payload instanceof FormData) {
+        config.headers = { 'Content-Type': 'multipart/form-data' };
+      }
+      const response = await apiClient.patch(
+        `/course/${courseId}/update`,
+        payload,
+        config
+      );
+      return response?.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+  unpublishCourse: async (courseId) => {
+    try {
+      const response = await apiClient.patch(`/course/${courseId}/unpublish`);
+      return response?.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }

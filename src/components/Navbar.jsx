@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X, Search } from 'lucide-react';
 import useCourseStore from '../store/courseStore';
 import { Link, useNavigate } from 'react-router-dom';
+import LazyImage from './LazyImage';
+import authService from '../services/authService';
 
 export default function Navbar({ searchQuery, setSearchQuery }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,68 +22,109 @@ export default function Navbar({ searchQuery, setSearchQuery }) {
   };
 
   const navigate = useNavigate();
-  // user state derived from localStorage (authUser set at login)
-  const [user, setUser] = useState(() => {
-    try {
-      const raw = localStorage.getItem('authUser');
-      return raw ? JSON.parse(raw) : null;
-    } catch (e) {
-      return null;
-    }
-  });
+  // user state will be fetched from backend via cookie-based session
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key === 'authUser') {
-        try {
-          setUser(e.newValue ? JSON.parse(e.newValue) : null);
-        } catch (err) {
-          setUser(null);
-        }
+    let mounted = true;
+
+    async function fetchMe() {
+      try {
+        const userObj = await authService.getMe();
+        if (!mounted) return;
+        setUser(userObj || null);
+      } catch (err) {
+        setUser(null);
       }
+    }
+
+    // fetch on mount
+    fetchMe();
+
+    const onStorage = (e) => {
       if (e.key === 'authToken' && !e.newValue) {
         // token removed in another tab
         setUser(null);
       }
     };
 
-    const onAuthChanged = () => {
-      try {
-        const raw = localStorage.getItem('authUser');
-        setUser(raw ? JSON.parse(raw) : null);
-      } catch (err) {
-        setUser(null);
-      }
-    };
+    const onAuthChanged = () => fetchMe();
 
     window.addEventListener('storage', onStorage);
     window.addEventListener('authChanged', onAuthChanged);
     return () => {
+      mounted = false;
       window.removeEventListener('storage', onStorage);
       window.removeEventListener('authChanged', onAuthChanged);
     };
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('authUser');
+    console.log('Logout clicked - clearing session...');
+
+    // Log current cookies before deletion
+    console.log('Cookies before logout:', document.cookie);
+
+    // Clear jwt cookie - backend sets it with: httpOnly: false, sameSite: 'strict'
+    try {
+      // Try multiple deletion strategies to ensure cookie is removed
+      const deletionStrategies = [
+        'jwt=; path=/; max-age=0; samesite=strict',
+        'jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; samesite=strict',
+        'jwt=; path=/; max-age=0',
+        'jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT',
+        'jwt=; max-age=0',
+        'jwt=; expires=Thu, 01 Jan 1970 00:00:01 GMT'
+      ];
+
+      deletionStrategies.forEach((strategy) => {
+        document.cookie = strategy;
+      });
+
+      console.log('Cookies after deletion attempts:', document.cookie);
+    } catch (e) {
+      console.error('Error clearing jwt cookie:', e);
+    }
+
+    // Clear localStorage
+    try {
+      localStorage.removeItem('authToken');
+      console.log('Cleared authToken from localStorage');
+    } catch (e) {
+      console.error('Error clearing localStorage:', e);
+    }
+
+    // Update UI immediately
     setUser(null);
+    console.log('Set user state to null');
+
+    // Dispatch event so other components know user logged out
+    try {
+      window.dispatchEvent(new Event('authChanged'));
+      console.log('Dispatched authChanged event');
+    } catch (e) {
+      console.error('Error dispatching authChanged:', e);
+    }
+
+    // Navigate to home
+    console.log('Navigating to home page');
     navigate('/');
   };
-
   return (
     <nav className="fixed top-0 w-full z-50 bg-slate-900/95 backdrop-blur-lg border-b border-indigo-500/20 shadow-lg shadow-indigo-500/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center gap-2 group cursor-pointer">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/50 group-hover:scale-110 transition-transform duration-300">
-              SF
-            </div>
+          <Link to="/" className="flex items-center gap-2 group cursor-pointer">
+            <LazyImage
+              src="/logo.png"
+              alt="SkillForge"
+              className="w-10 h-10 rounded-lg object-cover shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform duration-300"
+            />
             <span className="text-xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent hidden sm:block">
               SkillForge
             </span>
-          </div>
+          </Link>
 
           {/* Search Bar */}
           <div className="hidden md:flex flex-1 max-w-md mx-8">
@@ -122,19 +165,25 @@ export default function Navbar({ searchQuery, setSearchQuery }) {
               </Link>
             ) : (
               <div className="flex items-center gap-3">
-                <img
-                  src={
-                    user.image ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                      user.name || user.full_name || user.email || 'User'
-                    )}&background=0D9488&color=fff&rounded=true`
-                  }
-                  alt={user.name || user.full_name || 'User'}
-                  className="w-9 h-9 rounded-full object-cover border-2 border-slate-700"
-                />
-                <span className="text-sm font-medium text-white max-w-[160px] truncate">
-                  {user.name || user.full_name || user.email}
-                </span>
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="flex items-center gap-3"
+                >
+                  <img
+                    src={
+                      user.image ||
+                      `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        user.name || user.full_name || user.email || 'User'
+                      )}&background=0D9488&color=fff&rounded=true`
+                    }
+                    loading="lazy"
+                    alt={user.name || user.full_name || 'User'}
+                    className="w-9 h-9 rounded-full object-cover border-2 border-slate-700"
+                  />
+                  <span className="text-sm font-medium text-white max-w-[160px] truncate">
+                    {user.name || user.full_name || user.email}
+                  </span>
+                </button>
                 <button
                   onClick={handleLogout}
                   className="ml-2 px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm"
@@ -176,6 +225,7 @@ export default function Navbar({ searchQuery, setSearchQuery }) {
                         user.name || user.full_name || user.email || 'User'
                       )}&background=0D9488&color=fff&rounded=true`
                     }
+                    loading="lazy"
                     alt={user.name || user.full_name || 'User'}
                     className="w-10 h-10 rounded-full object-cover border-2 border-slate-700"
                   />
@@ -183,7 +233,11 @@ export default function Navbar({ searchQuery, setSearchQuery }) {
                     <div className="text-sm font-medium text-white truncate">
                       {user.name || user.full_name || user.email}
                     </div>
-                    <div className="text-xs text-slate-400">View profile</div>
+                    <div className="text-xs text-slate-400">
+                      <button onClick={() => navigate('/dashboard')}>
+                        View profile
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <button

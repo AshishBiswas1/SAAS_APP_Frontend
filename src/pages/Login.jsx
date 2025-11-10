@@ -20,48 +20,16 @@ export default function Login() {
       // backend returns token in token field
       const token = res?.token || res?.data?.token;
       if (token) {
+        // Backend already sets the jwt cookie via Set-Cookie header
+        // No need to set it again from client side
+
+        // keep authToken for backward compatibility (some requests may use it)
         localStorage.setItem('authToken', token);
 
-        // Set cookie so backend protect() (which checks req.cookies.jwt) accepts the session.
+        // Notify Navbar to fetch user info
         try {
-          let cookie = `jwt=${token}; path=/; max-age=${
-            24 * 60 * 60
-          }; SameSite=Strict`;
-          if (window.location.protocol === 'https:') cookie += '; Secure';
-          document.cookie = cookie;
-        } catch (e) {
-          console.warn('Failed to set cookie:', e);
-        }
-
-        // Normalize the returned user into a small profile used by Navbar
-        const rawUser = res?.data?.user || res?.user || null;
-        const userObj = rawUser
-          ? {
-              id: rawUser.id,
-              email: rawUser.email || rawUser.user_metadata?.email,
-              name:
-                rawUser.user_metadata?.name ||
-                rawUser.user_metadata?.full_name ||
-                rawUser.email ||
-                rawUser.user_metadata?.sub ||
-                '',
-              image:
-                rawUser.user_metadata?.avatar_url ||
-                rawUser.user_metadata?.image ||
-                null
-            }
-          : null;
-
-        if (userObj) {
-          try {
-            localStorage.setItem('authUser', JSON.stringify(userObj));
-            try {
-              window.dispatchEvent(new Event('authChanged'));
-            } catch (e) {}
-          } catch (e) {
-            console.warn('Failed to store authUser in localStorage', e);
-          }
-        }
+          window.dispatchEvent(new Event('authChanged'));
+        } catch (e) {}
       }
       setLoading(false);
       navigate('/');

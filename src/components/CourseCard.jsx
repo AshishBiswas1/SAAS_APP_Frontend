@@ -1,4 +1,5 @@
 import React from 'react';
+import LazyImage from './LazyImage';
 import { Star, Users, IndianRupee, BookOpen } from 'lucide-react';
 
 export default function CourseCard({ course }) {
@@ -49,7 +50,7 @@ export default function CourseCard({ course }) {
       {/* Course Image */}
       <div className="relative overflow-hidden h-48 bg-gradient-to-br from-slate-700 to-slate-900">
         {course.image ? (
-          <img
+          <LazyImage
             src={course.image}
             alt={course.title}
             crossOrigin="anonymous"
