@@ -20,17 +20,17 @@ const authService = {
     return response;
   },
   getMe: async () => {
-    // Check if jwt cookie exists before making the request
-    const hasCookie = document.cookie.split(';').some((cookie) => {
-      return cookie.trim().startsWith('jwt=');
-    });
+    // Check if authToken exists in localStorage
+    const token = localStorage.getItem('authToken');
 
-    if (!hasCookie) {
-      console.log('No jwt cookie found, skipping getMe request');
+    if (!token) {
+      console.log(
+        'No auth token found in localStorage, skipping getMe request'
+      );
       return null;
     }
 
-    // Calls backend route which reads token (cookie or header) and returns
+    // Calls backend route which reads token from Authorization header
     // { status: 'success', data: { user: { ... } } } or user=null.
     try {
       const resp = await apiClient.get('/user/getMe');
