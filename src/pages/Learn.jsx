@@ -149,6 +149,8 @@ export default function Learn() {
                       a.remove();
                       window.URL.revokeObjectURL(url);
                       show('Certificate generated & downloaded', 'success');
+                      // Navigate to review/post page after starting download
+                      setTimeout(() => navigate(`/course/${id}/review`), 250);
                     } catch (err) {
                       console.error('Certificate generation failed', err);
                       show('Failed to generate certificate', 'error');

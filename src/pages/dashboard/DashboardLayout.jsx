@@ -5,7 +5,8 @@ const navLinks = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/dashboard/enrolled', label: 'Enrolled Courses' },
   { to: '/dashboard/your-courses', label: 'Your Courses' },
-  { to: '/dashboard/create', label: 'Create Course' }
+  { to: '/dashboard/create', label: 'Create Course' },
+  { to: '/dashboard/reviews', label: 'Reviews' }
 ];
 
 export default function DashboardLayout() {

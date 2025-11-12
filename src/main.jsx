@@ -16,6 +16,8 @@ const YourCourses = lazy(() => import('./pages/dashboard/YourCourses'));
 const CreateCourse = lazy(() => import('./pages/dashboard/CreateCourse'));
 const EditCourse = lazy(() => import('./pages/dashboard/EditCourse'));
 const UploadVideos = lazy(() => import('./pages/dashboard/UploadVideos'));
+const ReviewsPage = lazy(() => import('./pages/dashboard/Reviews'));
+const PostReview = lazy(() => import('./pages/PostReview'));
 import './index.css';
 import ToastProvider from './components/ToastProvider';
 
@@ -48,7 +50,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               <Route path="create" element={<CreateCourse />} />
               <Route path="edit/:id" element={<EditCourse />} />
               <Route path="upload/:id" element={<UploadVideos />} />
+              <Route path="reviews" element={<ReviewsPage />} />
             </Route>
+            <Route path="/course/:id/review" element={<PostReview />} />
           </Routes>
         </Suspense>
       </BrowserRouter>

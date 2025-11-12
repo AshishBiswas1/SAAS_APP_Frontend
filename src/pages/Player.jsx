@@ -402,6 +402,11 @@ export default function Player() {
                     a.remove();
                     window.URL.revokeObjectURL(url);
                     show('Certificate generated & downloaded', 'success');
+                    // Navigate to review/post page after starting download
+                    setTimeout(
+                      () => navigate(`/course/${courseId}/review`),
+                      250
+                    );
                   } catch (e) {
                     console.error('Certificate generation failed', e);
                     show('Failed to generate certificate', 'error');
