@@ -6,7 +6,14 @@ import courseService from '../services/courseService';
 import { generateCertificateBlob } from '../utils/certificate';
 import { useToast } from '../components/ToastProvider';
 import Navbar from '../components/Navbar';
-import { Play, Pause, Volume2, Maximize2, Minimize2 } from 'lucide-react';
+import {
+  Play,
+  Pause,
+  Volume2,
+  Maximize2,
+  Minimize2,
+  ArrowLeft
+} from 'lucide-react';
 
 function formatTime(s = 0) {
   const sec = Math.floor(Number(s) || 0);
@@ -272,6 +279,14 @@ export default function Player() {
     <div>
       <Navbar />
       <div className="min-h-screen pt-20 bg-gradient-to-br from-[#061026] to-[#0f1730] text-white">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 text-sm text-indigo-300 hover:text-indigo-400 font-semibold bg-slate-900/30 px-3 py-1 rounded mb-4"
+          >
+            <ArrowLeft size={16} /> Back
+          </button>
+        </div>
         <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Player Column */}
           <div
